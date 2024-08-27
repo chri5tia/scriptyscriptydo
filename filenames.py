@@ -65,38 +65,39 @@ def check_files(directory):
     out_of_pattern_files = [f for f in files if not any(pattern.match(f) for pattern in patterns)]
 
     if out_of_pattern_files:
-        print("Files that do not match the patterns:")
         for file in out_of_pattern_files:
-            print(file)
+            # Skip hidden dot-underscore files created by macOS
+            if file.startswith("._"):
+                continue
+
             suggested_name = suggest_new_name(file)
             if suggested_name:
                 new_path = os.path.join(directory, suggested_name)
-                if os.path.exists(new_path):
-                    # Display metadata for both files
-                    display_file_info(os.path.join(directory, file), "Original File")
-                    display_file_info(new_path, "Existing Target File")
+                old_path = os.path.join(directory, file)
 
-                    # Ask the user if they want to overwrite the existing file
-                    response = input(f"A file named '{suggested_name}' already exists. Do you want to overwrite it? (y/n): ").lower()
-                    if response == 'y':
-                        old_path = os.path.join(directory, file)
-                        os.rename(old_path, new_path)
-                        print(f"Overwritten and renamed '{file}' to '{suggested_name}'.")
-                    else:
-                        print(f"Skipped renaming '{file}'.")
+                if os.path.exists(new_path):
+                    # Display metadata for both files and skip renaming
+                    display_file_info(old_path, "Original File")
+                    display_file_info(new_path, "Existing Target File")
+                    print(f"Skipping renaming of '{file}' to '{suggested_name}' because it already exists.\n")
+                    skipped_files.append(file)
                 else:
-                    # Ask the user if they want to rename the file
-                    response = input(f"Do you want to rename '{file}' to '{suggested_name}'? (y/n): ").lower()
-                    if response == 'y':
-                        old_path = os.path.join(directory, file)
-                        os.rename(old_path, new_path)
-                        print(f"Renamed '{file}' to '{suggested_name}'.")
-                    else:
-                        print(f"Skipped renaming '{file}'.")
+                    # Rename the file if the target name doesn't exist
+                    os.rename(old_path, new_path)
+                    print(f"Renamed '{file}' to '{suggested_name}'.\n")
             else:
                 print(f"No suggestion for renaming '{file}'.")
+
     else:
         print("All files match the patterns.")
+
+    # Print the list of skipped files due to target name already existing
+    if skipped_files:
+        print("\nThe following files were skipped because the target name already existed:")
+        for skipped_file in skipped_files:
+            print(f" - {skipped_file}")
+    else:
+        print("\nNo files were skipped due to target name conflicts.")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
