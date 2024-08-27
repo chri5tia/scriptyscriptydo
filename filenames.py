@@ -3,6 +3,13 @@ import os
 import sys
 import time
 
+def human_readable_size(size_in_bytes):
+    """Convert a file size in bytes to a human-readable format."""
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if size_in_bytes < 1024:
+            return f"{size_in_bytes:.2f} {unit}"
+        size_in_bytes /= 1024
+
 def get_file_metadata(filepath):
     """Get metadata of a file such as size, creation date, and modification date."""
     stats = os.stat(filepath)
@@ -19,14 +26,15 @@ def get_file_metadata(filepath):
 def display_file_info(filepath, label):
     """Prints the metadata of a file."""
     metadata = get_file_metadata(filepath)
+    readable_size = human_readable_size(metadata['size'])
     print(f"{label}:")
     print(f"  Path: {filepath}")
-    print(f"  Size: {metadata['size']} bytes")
+    print(f"  Size: {readable_size}")
     print(f"  Creation Date: {metadata['creation_time']}")
     print(f"  Modification Date: {metadata['modification_time']}\n")
 
 def suggest_new_name(file_name):
-    # Suggest a new name based on the first four digits found in the name
+    """Suggest a new name based on the first four digits found in the name."""
     match = re.search(r'\d{4}', file_name)
     if match:
         number = match.group(0)
