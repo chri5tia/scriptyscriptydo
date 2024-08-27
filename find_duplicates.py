@@ -14,8 +14,8 @@ def get_file_metadata(filepath):
     """Get metadata of a file such as size, creation date, and modification date."""
     stats = os.stat(filepath)
     size = stats.st_size  # in bytes
-    creation_time = time.ctime(stats.st_ctime)
-    modification_time = time.ctime(stats.st_mtime)
+    creation_time = time.ctime(stats.st_ctime)  # File creation time
+    modification_time = time.ctime(stats.st_mtime)  # Last modification time
 
     return {
         'size': size,
@@ -29,14 +29,22 @@ def display_file_info(filepath, label):
     readable_size = human_readable_size(metadata['size'])
     print(f"{label}:")
     print(f"  Path: {filepath}")
-    print(f"  Size: {readable_size} ({metadata['size']} bytes)")  # Added exact size in bytes
+    print(f"  Size: {readable_size} ({metadata['size']} bytes)")
+    print(f"  Creation Date: {metadata['creation_time']}")
+    print(f"  Modification Date: {metadata['modification_time']}\n")
+
 def search_files_for_duplicates(base_directory):
+    """Search through all directories for files with similar names, disregarding _DUPLICATE files."""
     file_dict = {}
+
     for root, _, files in os.walk(base_directory):
         # Skip Trash folders
         if 'Trash' in root:
             continue
         for file in files:
+            # Ignore files with _DUPLICATE in their names
+            if '_DUPLICATE' in file:
+                continue
             match = re.match(r'(IMG_\d{4})[\s\S]*?(\.\w+)', file)
             if match:
                 file_id = match.group(1)
@@ -45,6 +53,7 @@ def search_files_for_duplicates(base_directory):
                 if key not in file_dict:
                     file_dict[key] = []
                 file_dict[key].append(os.path.join(root, file))
+
     return file_dict
 
 def resolve_duplicates(file_dict):
@@ -107,34 +116,19 @@ def resolve_duplicates(file_dict):
 
     print(f"\nTotal files marked as duplicates: {duplicate_count}")
 
-def search_files_for_duplicates(base_directory):
-    """Search through all directories for files with similar names."""
-    file_dict = {}
-
-    for root, _, files in os.walk(base_directory):
-        if 'Trash' in root:
-            continue  # Skip Trash folders
-        for file in files:
-            match = re.match(r'(IMG_\d{4})[\s\S]*?(\.\w+)', file)
-            if match:
-                file_id = match.group(1)
-                extension = match.group(2)
-                key = f"{file_id}{extension}"
-                if key not in file_dict:
-                    file_dict[key] = []
-                file_dict[key].append(os.path.join(root, file))
-
-    return file_dict
-
 def tag_duplicate(filepath):
-    """Tag a file as a duplicate by renaming it with a _DUPLICATE suffix."""
+    """Tag a file as a duplicate by renaming it with a _DUPLICATE suffix, unless it already has it."""
     directory, filename = os.path.split(filepath)
     name, ext = os.path.splitext(filename)
-    duplicate_name = f"{name}_DUPLICATE{ext}"
-    duplicate_path = os.path.join(directory, duplicate_name)
 
-    os.rename(filepath, duplicate_path)
-    print(f"Tagged '{filepath}' as a duplicate.")
+    # Avoid renaming if the file already has _DUPLICATE in its name
+    if '_DUPLICATE' not in name:
+        duplicate_name = f"{name}_DUPLICATE{ext}"
+        duplicate_path = os.path.join(directory, duplicate_name)
+        os.rename(filepath, duplicate_path)
+        print(f"Tagged '{filepath}' as a duplicate.")
+    else:
+        print(f"'{filepath}' already marked as duplicate. No changes made.")
 
 def get_external_volumes():
     """Get a list of external mounted volumes (for macOS/Linux)."""
