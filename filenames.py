@@ -1,6 +1,29 @@
 import re
 import os
 import sys
+import time
+
+def get_file_metadata(filepath):
+    """Get metadata of a file such as size, creation date, and modification date."""
+    stats = os.stat(filepath)
+    size = stats.st_size  # in bytes
+    creation_time = time.ctime(stats.st_ctime)
+    modification_time = time.ctime(stats.st_mtime)
+
+    return {
+        'size': size,
+        'creation_time': creation_time,
+        'modification_time': modification_time
+    }
+
+def display_file_info(filepath, label):
+    """Prints the metadata of a file."""
+    metadata = get_file_metadata(filepath)
+    print(f"{label}:")
+    print(f"  Path: {filepath}")
+    print(f"  Size: {metadata['size']} bytes")
+    print(f"  Creation Date: {metadata['creation_time']}")
+    print(f"  Modification Date: {metadata['modification_time']}\n")
 
 def suggest_new_name(file_name):
     # Suggest a new name based on the first four digits found in the name
@@ -37,6 +60,11 @@ def check_files(directory):
             if suggested_name:
                 new_path = os.path.join(directory, suggested_name)
                 if os.path.exists(new_path):
+                    # Display metadata for both files
+                    display_file_info(os.path.join(directory, file), "Original File")
+                    display_file_info(new_path, "Existing Target File")
+
+                    # Ask the user if they want to overwrite the existing file
                     response = input(f"A file named '{suggested_name}' already exists. Do you want to overwrite it? (y/n): ").lower()
                     if response == 'y':
                         old_path = os.path.join(directory, file)
@@ -45,6 +73,7 @@ def check_files(directory):
                     else:
                         print(f"Skipped renaming '{file}'.")
                 else:
+                    # Ask the user if they want to rename the file
                     response = input(f"Do you want to rename '{file}' to '{suggested_name}'? (y/n): ").lower()
                     if response == 'y':
                         old_path = os.path.join(directory, file)
