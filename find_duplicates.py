@@ -2,9 +2,6 @@ import os
 import re
 import time
 import sys
-from datetime import datetime
-from PIL import Image
-from PIL.ExifTags import TAGS
 
 def human_readable_size(size_in_bytes):
     """Convert a file size in bytes to a human-readable format."""
@@ -14,30 +11,16 @@ def human_readable_size(size_in_bytes):
         size_in_bytes /= 1024
 
 def get_file_metadata(filepath):
-    """Get metadata of a file such as size, original content creation date, and file creation date."""
+    """Get metadata of a file such as size, creation date, and modification date."""
     stats = os.stat(filepath)
     size = stats.st_size  # in bytes
-    file_creation_time = time.ctime(stats.st_ctime)
-
-    # Try to get the original content creation date for media files (e.g., photos)
-    original_creation_time = None
-    if filepath.lower().endswith(('.jpg', '.jpeg', '.png', '.tiff')):
-        try:
-            image = Image.open(filepath)
-            exif_data = image._getexif()
-            if exif_data is not None:
-                for tag, value in exif_data.items():
-                    tag_name = TAGS.get(tag, tag)
-                    if tag_name == "DateTimeOriginal":
-                        original_creation_time = value
-                        break
-        except Exception as e:
-            print(f"Error reading EXIF data for {filepath}: {e}")
+    creation_time = time.ctime(stats.st_ctime)
+    modification_time = time.ctime(stats.st_mtime)
 
     return {
         'size': size,
-        'original_creation_time': original_creation_time,
-        'file_creation_time': file_creation_time
+        'creation_time': creation_time,
+        'modification_time': modification_time
     }
 
 def display_file_info(filepath, label):
@@ -47,14 +30,62 @@ def display_file_info(filepath, label):
     print(f"{label}:")
     print(f"  Path: {filepath}")
     print(f"  Size: {readable_size} ({metadata['size']} bytes)")  # Added exact size in bytes
+def search_files_for_duplicates(base_directory):
+    file_dict = {}
+    for root, _, files in os.walk(base_directory):
+        # Skip Trash folders
+        if 'Trash' in root:
+            continue
+        for file in files:
+            match = re.match(r'(IMG_\d{4})[\s\S]*?(\.\w+)', file)
+            if match:
+                file_id = match.group(1)
+                extension = match.group(2)
+                key = f"{file_id}{extension}"
+                if key not in file_dict:
+                    file_dict[key] = []
+                file_dict[key].append(os.path.join(root, file))
+    return file_dict
 
-    # Display original content creation time if available
-    if metadata['original_creation_time']:
-        print(f"  Original Content Creation Date: {metadata['original_creation_time']}")
-    else:
-        print(f"  Original Content Creation Date: Not available or not applicable")
+def resolve_duplicates(file_dict):
+    """Resolve duplicates by asking the user which file to keep and tagging others."""
+    duplicate_count = 0  # Counter for duplicate files
+    skip_all_size_mismatches = False  # Flag to skip all results with different sizes
 
-    print(f"  File Creation Date: {metadata['file_creation_time']}\n")
+    for key, file_paths in file_dict.items():
+        if len(file_paths) > 1:
+            print(f"\n{len(file_paths)} duplicates found for '{key}':")
+
+            sizes = []
+            for i, path in enumerate(file_paths):
+                metadata = get_file_metadata(path)
+                sizes.append(metadata['size'])
+                display_file_info(path, f"File {i + 1}")
+
+            # Check if all file sizes are the same
+            if all(size == sizes[0] for size in sizes):
+                print("All files have the same size.\n")
+            else:
+                print("The files have different sizes.\n")
+
+                # If the flag to skip all size mismatches is set, skip automatically
+                if skip_all_size_mismatches:
+                    print("Skipping these files due to different sizes (automatically).\n")
+                    continue
+
+                # Ask the user if they want to skip this result due to size difference
+                skip_different_sizes = input("Do you want to skip these files because they have different sizes? ([y]es/[n]o/[s]kip all): ").lower()
+
+                if skip_different_sizes == 'y':
+                    print("Skipping these files due to different sizes.\n")
+                    continue
+                elif skip_different_sizes == 's':
+                    skip_all_size_mismatches = True  # Set flag to skip all future size mismatches
+                    print("Skipping these files and all future size mismatches.\n")
+                    continue
+
+            while True:
+                response = input(f"Do you want to keep one file or all files? (Type 'one' or 'all'): ").lower()
 
 def search_files_for_duplicates(base_directory):
     """Search through all directories for files with similar names."""
