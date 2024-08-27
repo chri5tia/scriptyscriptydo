@@ -47,7 +47,7 @@ def suggest_new_name(file_name):
     return None
 
 def check_files(directory):
-    """Check files and rename them unless the target name already exists."""
+    """Check files and rename them unless the target name already exists or the file is marked as a duplicate."""
     # Define the expected patterns
     patterns = [
         re.compile(r'^IMG_\d{4}\.JPG$'),
@@ -67,8 +67,8 @@ def check_files(directory):
     if out_of_pattern_files:
         for file in out_of_pattern_files:
             # Skip hidden dot-underscore files created by macOS
-            if file.startswith("._"):
-                continue
+            if file.startswith("._") or "_DUPLICATE" in file:
+                continue  # Skip any file with "_DUPLICATE" in its name
 
             suggested_name = suggest_new_name(file)
             if suggested_name:
