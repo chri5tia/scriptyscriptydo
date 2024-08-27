@@ -60,6 +60,7 @@ def resolve_duplicates(file_dict):
     """Resolve duplicates by asking the user which file to keep and tagging others."""
     duplicate_count = 0  # Counter for duplicate files
     skip_all_size_mismatches = False  # Flag to skip all results with different sizes
+    changed_files = []  # List to track renamed files
 
     for key, file_paths in file_dict.items():
         if len(file_paths) > 1:
@@ -105,7 +106,8 @@ def resolve_duplicates(file_dict):
                         if 0 <= keep_index < len(file_paths):
                             for i, path in enumerate(file_paths):
                                 if i != keep_index:
-                                    tag_duplicate(path)
+                                    new_path = tag_duplicate(path)
+                                    changed_files.append(new_path)  # Track the renamed file path
                                     duplicate_count += 1
                             print(f"Keeping '{file_paths[keep_index]}' and tagging others as duplicates.")
                             break
@@ -115,6 +117,9 @@ def resolve_duplicates(file_dict):
                         print("Invalid input. Please enter 'a' to keep all files or a valid file number (1, 2, etc.).")
 
     print(f"\nTotal files marked as duplicates: {duplicate_count}")
+
+    # Save the list of changed files to a report
+    save_report(changed_files)
 
 def tag_duplicate(filepath):
     """Tag a file as a duplicate by renaming it with a _DUPLICATE suffix, unless it already has it."""
@@ -127,8 +132,18 @@ def tag_duplicate(filepath):
         duplicate_path = os.path.join(directory, duplicate_name)
         os.rename(filepath, duplicate_path)
         print(f"Tagged '{filepath}' as a duplicate.")
+        return duplicate_path
     else:
         print(f"'{filepath}' already marked as duplicate. No changes made.")
+        return filepath
+
+def save_report(changed_files):
+    """Save a list of changed files to a txt file."""
+    report_file = "duplicate_report.txt"
+    with open(report_file, 'w') as report:
+        for file_path in changed_files:
+            report.write(f"{file_path}\n")
+    print(f"\nReport saved to '{report_file}'")
 
 def get_external_volumes():
     """Get a list of external mounted volumes (for macOS/Linux)."""
