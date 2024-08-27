@@ -120,19 +120,19 @@ def tag_duplicate(filepath):
     duplicate_name = f"{name}_DUPLICATE{ext}"
     duplicate_path = os.path.join(directory, duplicate_name)
 
-    os.rename(filepath, duplicate_path)
-    print(f"Tagged '{filepath}' as a duplicate.")
-
-def get_mounted_volumes():
-    """Get a list of mounted volumes (for macOS/Linux)."""
-    volumes = ["/"]  # Include the root volume
+def get_external_volumes():
+    """Get a list of external mounted volumes (for macOS/Linux)."""
+    external_volumes = []
     volumes_dir = "/Volumes"
+
     if os.path.isdir(volumes_dir):
         for volume in os.listdir(volumes_dir):
             volume_path = os.path.join(volumes_dir, volume)
             if os.path.ismount(volume_path):
-                volumes.append(volume_path)
-    return volumes
+                # Only add external volumes, exclude system volumes
+                external_volumes.append(volume_path)
+
+    return external_volumes
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -142,9 +142,9 @@ if __name__ == "__main__":
         if not os.path.isdir(starting_directory):
             print(f"The directory '{starting_directory}' does not exist.")
         else:
-            # Get all volumes to search
-            volumes_to_search = get_mounted_volumes()
-            volumes_to_search.append(starting_directory)
+            # Get only external volumes to search
+            volumes_to_search = get_external_volumes()
+            volumes_to_search.append(starting_directory)  # Add the starting directory
 
             for volume in volumes_to_search:
                 print(f"Searching in {volume}...")
