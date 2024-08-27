@@ -47,12 +47,16 @@ def suggest_new_name(file_name):
     return None
 
 def check_files(directory):
+    """Check files and rename them unless the target name already exists."""
     # Define the expected patterns
     patterns = [
         re.compile(r'^IMG_\d{4}\.JPG$'),
         re.compile(r'^IMG_\d{4}\.CR2$'),
         re.compile(r'^MVI_\d{4}\.MOV$')
     ]
+
+    # List to store skipped files due to already having a target name
+    skipped_files = []
 
     # List all files in the given directory
     files = os.listdir(directory)
