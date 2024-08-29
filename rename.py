@@ -4,6 +4,17 @@ import sys
 import time
 from datetime import datetime
 
+def append_to_report(directory, script_name):
+    """Appends the date, time, and script name to a report file."""
+    report_path = os.path.join(directory, 'execution_report.txt')
+    with open(report_path, 'a') as report:
+        report.write(f"Script '{script_name}' executed on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+
+# Call this at the start of the script
+directory = os.path.dirname(os.path.realpath(__file__))
+script_name = os.path.basename(__file__)
+append_to_report(directory, script_name)
+
 def human_readable_size(size_in_bytes):
     """Convert a file size in bytes to a human-readable format."""
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
