@@ -150,12 +150,15 @@ def tag_duplicate(filepath):
         return filepath
 
 def save_report(changed_files):
-    """Save a list of changed files to a txt file."""
-    report_file = "duplicate_report.txt"
-    with open(report_file, 'w') as report:
+    """Append the list of changed files to a report file with the date and activities."""
+    report_file = "duplicates_report.txt"
+    with open(report_file, 'a') as report:
+        report.write(f"\nReport generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        report.write("Files marked as duplicates:\n")
         for file_path in changed_files:
             report.write(f"{file_path}\n")
-    print(f"\nReport saved to '{report_file}'")
+        report.write("\n")
+    print(f"\nReport appended to '{report_file}'")
 
 if __name__ == "__main__":
     # Get the current working directory
