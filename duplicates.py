@@ -15,6 +15,9 @@ directory = os.path.dirname(os.path.realpath(__file__))
 script_name = os.path.basename(__file__)
 append_to_report(directory, script_name)
 
+def is_hidden(filepath):
+    return os.path.basename(filepath).startswith('.')
+
 def human_readable_size(size_in_bytes):
     """Convert a file size in bytes to a human-readable format."""
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
@@ -54,6 +57,9 @@ def search_files_for_duplicates(base_directory):
         if 'Trash' in root:
             continue
         for file in files:
+            # Skip hidden files
+            if is_hidden(file):
+                continue
             # Ignore files with _DUPLICATE in their names
             if '_DUPLICATE' in file:
                 continue
