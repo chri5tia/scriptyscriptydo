@@ -7,8 +7,9 @@ from datetime import datetime
 def append_to_report(directory, script_name):
     """Appends the date, time, and script name to a report file."""
     report_path = os.path.join(directory, 'execution_report.txt')
-    with open(report_path, 'a') as report:
-        report.write(f"Script '{script_name}' executed on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    if not is_hidden(report_path):
+        with open(report_path, 'a') as report:
+            report.write(f"Script '{script_name}' executed on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
 
 # Call this at the start of the script
 directory = os.path.dirname(os.path.realpath(__file__))
@@ -64,21 +65,22 @@ def suggest_new_name(file_name):
 
 def write_report(report_path, renamed_files, skipped_files):
     """Write a report with the renamed and skipped files."""
-    with open(report_path, 'w') as report:
-        report.write(f"Report generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-        if renamed_files:
-            report.write("Renamed Files:\n")
-            for old_name, new_name in renamed_files:
-                report.write(f"  {old_name} -> {new_name}\n")
-        else:
-            report.write("No files were renamed.\n")
+    if not is_hidden(report_path):
+        with open(report_path, 'w') as report:
+            report.write(f"Report generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            if renamed_files:
+                report.write("Renamed Files:\n")
+                for old_name, new_name in renamed_files:
+                    report.write(f"  {old_name} -> {new_name}\n")
+            else:
+                report.write("No files were renamed.\n")
 
-        if skipped_files:
-            report.write("\nSkipped Files (Target name already existed):\n")
-            for skipped_file in skipped_files:
-                report.write(f"  {skipped_file}\n")
-        else:
-            report.write("\nNo files were skipped due to target name conflicts.\n")
+            if skipped_files:
+                report.write("\nSkipped Files (Target name already existed):\n")
+                for skipped_file in skipped_files:
+                    report.write(f"  {skipped_file}\n")
+            else:
+                report.write("\nNo files were skipped due to target name conflicts.\n")
 
 def check_files(directory):
     """Check files and rename them unless the target name already exists or the file is marked as a duplicate."""
