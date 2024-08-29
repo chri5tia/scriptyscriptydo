@@ -2,6 +2,7 @@ import re
 import os
 import sys
 import time
+from datetime import datetime
 
 def human_readable_size(size_in_bytes):
     """Convert a file size in bytes to a human-readable format."""
@@ -46,6 +47,24 @@ def suggest_new_name(file_name):
             return f"MVI_{number}.MOV"
     return None
 
+def write_report(report_path, renamed_files, skipped_files):
+    """Write a report with the renamed and skipped files."""
+    with open(report_path, 'w') as report:
+        report.write(f"Report generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+        if renamed_files:
+            report.write("Renamed Files:\n")
+            for old_name, new_name in renamed_files:
+                report.write(f"  {old_name} -> {new_name}\n")
+        else:
+            report.write("No files were renamed.\n")
+
+        if skipped_files:
+            report.write("\nSkipped Files (Target name already existed):\n")
+            for skipped_file in skipped_files:
+                report.write(f"  {skipped_file}\n")
+        else:
+            report.write("\nNo files were skipped due to target name conflicts.\n")
+
 def check_files(directory):
     """Check files and rename them unless the target name already exists or the file is marked as a duplicate."""
     # Define the expected patterns
@@ -55,7 +74,8 @@ def check_files(directory):
         re.compile(r'^MVI_\d{4}\.MOV$')
     ]
 
-    # List to store skipped files due to already having a target name
+    # Lists to store renamed and skipped files
+    renamed_files = []
     skipped_files = []
 
     # List all files in the given directory
@@ -66,7 +86,7 @@ def check_files(directory):
 
     if out_of_pattern_files:
         for file in out_of_pattern_files:
-            # Skip hidden dot-underscore files created by macOS
+            # Skip hidden dot-underscore files created by macOS and files with _DUPLICATE in the name
             if file.startswith("._") or "_DUPLICATE" in file:
                 continue  # Skip any file with "_DUPLICATE" in its name
 
@@ -85,19 +105,17 @@ def check_files(directory):
                     # Rename the file if the target name doesn't exist
                     os.rename(old_path, new_path)
                     print(f"Renamed '{file}' to '{suggested_name}'.\n")
+                    renamed_files.append((file, suggested_name))
             else:
                 print(f"No suggestion for renaming '{file}'.")
 
     else:
         print("All files match the patterns.")
 
-    # Print the list of skipped files due to target name already existing
-    if skipped_files:
-        print("\nThe following files were skipped because the target name already existed:")
-        for skipped_file in skipped_files:
-            print(f" - {skipped_file}")
-    else:
-        print("\nNo files were skipped due to target name conflicts.")
+    # Write the report
+    report_path = os.path.join(directory, f"renaming_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
+    write_report(report_path, renamed_files, skipped_files)
+    print(f"\nReport generated: {report_path}")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
