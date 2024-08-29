@@ -2,7 +2,6 @@ import os
 import re
 import time
 import sys
-
 from datetime import datetime
 
 def append_to_report(directory, script_name):
@@ -158,33 +157,16 @@ def save_report(changed_files):
             report.write(f"{file_path}\n")
     print(f"\nReport saved to '{report_file}'")
 
-def get_external_volumes():
-    """Get a list of external mounted volumes (for macOS/Linux)."""
-    external_volumes = []
-    volumes_dir = "/Volumes"
-
-    if os.path.isdir(volumes_dir):
-        for volume in os.listdir(volumes_dir):
-            volume_path = os.path.join(volumes_dir, volume)
-            if os.path.ismount(volume_path):
-                # Only add external volumes, exclude system volumes
-                external_volumes.append(volume_path)
-
-    return external_volumes
-
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python3 find_duplicates.py <starting_directory>")
-    else:
-        starting_directory = sys.argv[1]
-        if not os.path.isdir(starting_directory):
-            print(f"The directory '{starting_directory}' does not exist.")
-        else:
-            # Get only external volumes to search
-            volumes_to_search = get_external_volumes()
-            volumes_to_search.append(starting_directory)  # Add the starting directory
+    # Get the current working directory
+    starting_directory = os.getcwd()
 
-            for volume in volumes_to_search:
-                print(f"Searching in {volume}...")
-                file_dict = search_files_for_duplicates(volume)
-                resolve_duplicates(file_dict)
+    # Confirm the directory with the user
+    confirmation = input(f"Are you sure you want to search for duplicates in '{starting_directory}' and all its subdirectories? (yes/no): ").strip().lower()
+
+    if confirmation == 'yes':
+        print(f"Searching in {starting_directory}...")
+        file_dict = search_files_for_duplicates(starting_directory)
+        resolve_duplicates(file_dict)
+    else:
+        print("Operation canceled.")
