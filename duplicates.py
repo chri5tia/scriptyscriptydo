@@ -53,8 +53,8 @@ def search_files_for_duplicates(base_directory):
     file_dict = {}
 
     for root, _, files in os.walk(base_directory):
-        # Skip Trash folders
-        if 'Trash' in root:
+        # Skip Gallery folders
+        if 'Gallery' in root:
             continue
         for file in files:
             # Skip hidden files
@@ -74,7 +74,7 @@ def search_files_for_duplicates(base_directory):
 
     return file_dict
 
-def resolve_duplicates(file_dict):
+def resolve_duplicates(file_dict, auto_folder):
     """Resolve duplicates by asking the user which file to keep and tagging others."""
     duplicate_count = 0  # Counter for duplicate files
     skip_all_size_mismatches = False  # Flag to skip all results with different sizes
@@ -85,10 +85,22 @@ def resolve_duplicates(file_dict):
             print(f"\n{len(file_paths)} duplicates found for '{key}':")
 
             sizes = []
+            auto_marked = False
             for i, path in enumerate(file_paths):
                 metadata = get_file_metadata(path)
                 sizes.append(metadata['size'])  # Capture exact file sizes in bytes
                 display_file_info(path, f"File {i + 1}")
+
+                # Automatically mark as duplicate if in auto_folder
+                if auto_folder in path and not auto_marked:
+                    print(f"Automatically marking '{path}' as duplicate because it is in the auto folder.")
+                    new_path = tag_duplicate(path)
+                    changed_files.append(new_path)
+                    duplicate_count += 1
+                    auto_marked = True
+
+            if auto_marked:
+                continue
 
             # Check if all file sizes are exactly the same in bytes
             if all(size == sizes[0] for size in sizes):
@@ -174,8 +186,9 @@ if __name__ == "__main__":
     confirmation = input(f"Are you sure you want to search for duplicates in '{starting_directory}' and all its subdirectories? (yes/no): ").strip().lower()
 
     if confirmation == 'yes':
+        auto_folder = input("Please specify the 'auto folder' where files should be automatically marked as duplicates if found: ").strip()
         print(f"Searching in {starting_directory}...")
         file_dict = search_files_for_duplicates(starting_directory)
-        resolve_duplicates(file_dict)
+        resolve_duplicates(file_dict, auto_folder)
     else:
         print("Operation canceled.")
