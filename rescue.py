@@ -1,62 +1,71 @@
 import os
+import re
 import sys
-import shutil
 from datetime import datetime
 
-def get_files_with_sizes(directory):
-    files_with_sizes = {}
+def get_files_to_rename(directory):
+    """Get all files in the directory that match the IMG_xxxx pattern."""
+    files_to_rename = []
     for root, _, files in os.walk(directory):
         for file in files:
-            file_path = os.path.join(root, file)
-            size = os.path.getsize(file_path)
-            files_with_sizes[(file, size)] = file_path
-    return files_with_sizes
+            # Match files that follow the IMG_xxxx pattern
+            if re.match(r'IMG_\d{4}', file):
+                file_path = os.path.join(root, file)
+                files_to_rename.append(file_path)
+    return files_to_rename
 
-def compare_directories(current_dir, compare_dir):
-    current_files = get_files_with_sizes(current_dir)
-    compare_files = get_files_with_sizes(compare_dir)
+def generate_new_name(file_name, version=1):
+    """Generate a new name in the format IMG_xxxx-av1."""
+    # Extract the IMG_xxxx part from the original file name
+    match = re.search(r'(IMG_\d{4})', file_name)
 
-    missing_files = []
+    if match:
+        base_name = match.group(1)
+    else:
+        return file_name  # If no match, return the original name
 
-    for file_info, file_path in current_files.items():
-        if file_info not in compare_files:
-            missing_files.append(file_path)
+    # Get the file extension (e.g., .jpg, .png)
+    extension = os.path.splitext(file_name)[1]
 
-    return missing_files
+    # Create the new name with the format IMG_xxxx-av1
+    new_name = f"{base_name}-av{version}{extension}"
 
-def generate_report(missing_files, rescue_dir, report_only):
+    return new_name
+
+def rename_files(files_to_rename):
+    """Rename files and generate a report."""
     current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_name = f"RescuedFiles_{current_time}.txt"
-    report_path = os.path.join(rescue_dir, report_name)
+    report_name = f"RenamedFilesReport_{current_time}.txt"
+    report_path = os.path.join(os.getcwd(), report_name)
+
+    version_counter = 1  # To keep track of the versioning
 
     with open(report_path, "w") as report_file:
-        for file in missing_files:
-            if not report_only:
-                dest_file_path = os.path.join(rescue_dir, os.path.basename(file))
-                shutil.copy2(file, dest_file_path)
-                report_file.write(f"Copied: {file} -> {dest_file_path}\n")
-            else:
-                report_file.write(f"Missing: {file}\n")
+        for file in files_to_rename:
+            original_name = os.path.basename(file)
+            new_name = generate_new_name(original_name, version=version_counter)
+            version_counter += 1
+
+            # Rename the file
+            new_path = os.path.join(os.path.dirname(file), new_name)
+            os.rename(file, new_path)
+
+            # Write to the report
+            report_file.write(f"Renamed: {file} -> {new_path}\n")
 
     print(f"Report saved to '{report_path}'")
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print("Usage: python3 script_name.py /path/to/compare_directory [--report-only]")
+    if len(sys.argv) != 2:
+        print("Usage: python3 script_name.py /path/to/directory")
         sys.exit(1)
 
-    current_dir = os.getcwd()
-    compare_dir = sys.argv[1]
-    report_only = len(sys.argv) == 3 and sys.argv[2] == "--report-only"
+    directory = sys.argv[1]
 
-    rescue_dir = os.path.join(current_dir, "Rescued files")
+    # Get all IMG_xxxx files in the directory
+    files_to_rename = get_files_to_rename(directory)
 
-    if not os.path.exists(rescue_dir):
-        os.makedirs(rescue_dir)
-
-    missing_files = compare_directories(current_dir, compare_dir)
-
-    if missing_files:
-        generate_report(missing_files, rescue_dir, report_only)
+    if files_to_rename:
+        rename_files(files_to_rename)
     else:
-        print("All files match by name and size. No files to rescue.")
+        print("No files found matching the IMG_xxxx pattern.")

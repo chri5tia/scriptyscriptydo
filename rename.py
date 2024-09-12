@@ -58,7 +58,7 @@ def suggest_new_name(file_name):
         if file_name.lower().endswith('.jpg'):
             return f"IMG_{number}.JPG"
         elif file_name.lower().endswith('.cr2'):
-            return f"IMG_{number}.CR2"
+            return f"IMG_{number}-v.CR2"
         elif file_name.lower().endswith('.mov'):
             return f"MVI_{number}.MOV"
     return None
