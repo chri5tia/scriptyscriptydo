@@ -11,4 +11,4 @@ ddev composer install
 ddev setup
 ddev copy-db
 cd docroot/frontend
-
+say Ready
