@@ -8,3 +8,4 @@ git rebase origin/develop
 ddev composer install
 ddev restart
 ddev setup
+say Finished!

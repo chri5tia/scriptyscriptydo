@@ -9,3 +9,4 @@ ddev restart
 ddev composer install
 ddev setup-backend
 ddev setup-frontend
+say Finished!

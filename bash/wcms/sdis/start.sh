@@ -4,5 +4,7 @@
 
 git fetch origin
 git rebase origin/develop
-ddev composer install
 ddev restart
+ddev composer install
+ddev drush cim -y
+ddev drush updb -y

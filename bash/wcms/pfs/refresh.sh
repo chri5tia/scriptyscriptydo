@@ -11,3 +11,4 @@ ddev setup
 ddev auth ssh
 ddev copy-db
 ddev drush uli
+say Finished!

@@ -7,3 +7,6 @@ git fetch origin
 git rebase origin/develop
 ddev restart
 ddev composer install
+ddev drush updb
+ddev drush cim -y
+say Finished!

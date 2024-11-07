@@ -11,3 +11,4 @@ cd patches
 ddev drush updb > dbupdates.txt
 ddev drush updb -y
 ddev drush cex -y
+say Finished update script!
