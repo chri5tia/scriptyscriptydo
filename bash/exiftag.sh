@@ -63,13 +63,6 @@ find . -type f -name "*.jpg" | while read -r file; do
         ((chrome_count++))
     fi
 
-    # F. Other editors check
-    if [[ -n "$editor" && "$editor" != *"Picasa"* && "$editor" != *"GIMP"* && "$editor" != *"Windows Live"* && "$editor" != *"Chrome"* ]]; then
-        tag -a "Edited by other software" "$file"
-        echo "Tagged $file with 'Edited by other software'"
-        ((other_edited_count++))
-    fi
-
     # Check for malformed EXIF data (catch warnings or errors from exiftool)
     exiftool_output=$(exiftool "$file" 2>&1)
     if echo "$exiftool_output" | grep -q "Warning: Invalid size"; then
@@ -86,5 +79,3 @@ echo "$picasa_count file(s) were tagged with 'Picasa'."
 echo "$gimp_count file(s) were tagged with 'GIMP'."
 echo "$windows_live_count file(s) were tagged with 'Mock up Windows Live'."
 echo "$chrome_count file(s) were tagged with 'GP Mockup'."
-echo "$other_edited_count file(s) were tagged with 'Edited by other software'."
-echo "$malformed_exif_count file(s) were tagged with 'Exif Malformed'."
