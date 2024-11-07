@@ -2,13 +2,12 @@
 
 # Run sh refresh.sh to refresh healthcare
 
-ddev auth ssh
 git checkout develop
 git fetch origin
 git rebase origin/develop
-ddev restart
 ddev composer install
+ddev restart
 ddev setup
+ddev auth ssh
 ddev copy-db
-cd docroot/frontend
-say Finished!
+ddev drush uli
