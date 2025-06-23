@@ -1,11 +1,10 @@
 #!/bin/bash
 
-# Run sh refresh.sh to refresh payments
-
 git fetch origin && git rebase origin/develop
 ddev restart
+rm -r docroot/modules/contrib
+rm -r vendor
 ddev composer install
-ddev site-install
-ddev drush @sdismedicaid.prod sql-dump --structure-tables-list='cache_*,queue,batch' --skip-tables-list='cache_*,queue,batch' -Dssh.tty=0 > backups/production.sql
-ddev import-db --file ./backups/production.sql
+ddev setup
+# ddev copy-db
 say Finished!

@@ -1,14 +1,9 @@
 #!/bin/bash
 
-# Run sh refresh.sh to refresh healthcare
-
-git checkout develop
-git fetch origin
-git rebase origin/develop
-ddev composer install
+git fetch origin && git rebase origin/develop
 ddev restart
+rm -r docroot/modules/contrib
+rm -r vendor
+ddev composer install
 ddev setup
-ddev auth ssh
-ddev copy-db
-ddev drush uli
 say Finished!
