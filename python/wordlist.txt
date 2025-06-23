@@ -1,0 +1,15 @@
+# List of preferred nouns and adjectives for the XKCD pw generator script
+# Nouns
+Fox
+Dog
+Book
+Cloud
+Rain
+
+# Adjectives
+Brown
+Lazy
+Shiny
+Quick
+
+# Other
