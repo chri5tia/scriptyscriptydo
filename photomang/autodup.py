@@ -1,3 +1,51 @@
+"""
+This script automatically tags duplicate photos in one directory by comparing
+them against a reference directory. It groups files by camera-style ID
+(IMG_#### + SAME extension) and, for every group that also exists in the
+comparison directory, renames the files in the ANALYZE directory by appending
+"_DUPLICATE" before the extension. A cumulative report of changes is appended
+to 'duplicates_report.txt'.
+
+Usage:
+    python3 autodup.py
+
+Interactive flow:
+    1) Prompts for:
+       - Analyze directory (files here may be renamed).
+       - Comparison directory (used only to detect duplicates).
+       - Comma-separated list of subdirectory paths to ignore.
+         (These must be absolute paths to match the internal check.)
+    2) Asks for final confirmation summarizing the inputs.
+    3) Scans the analyze directory recursively (skipping any ignored subdirs).
+    4) Any file whose key (IMG_#### + extension) appears in the comparison
+       directory is tagged as a duplicate by renaming:
+         "<name><ext>" → "<name>_DUPLICATE<ext>".
+
+Matching rule:
+    - Filenames must START with the pattern: IMG_#### (four digits), followed by
+      anything, and a standard extension. Example matches:
+        IMG_0123.JPG, IMG_0123 edit.jpg, IMG_0123-final.CR2
+    - The grouping key is strictly "IMG_####<extension>" (same case of extension).
+
+Behavior:
+    - Hidden files (names starting with ".") are ignored.
+    - Files already containing "_DUPLICATE" in the base name are ignored.
+    - The comparison is by name pattern only (no byte-size or content checks).
+    - For each affected file in the analyze directory, the script renames it
+      to include "_DUPLICATE" before the extension.
+    - Appends a timestamped list of all renamed files to 'duplicates_report.txt'
+      in the current working directory.
+
+Notes:
+    - Destructive renames (no undo). Test on a copy first.
+    - On macOS (case-insensitive FS), be mindful of case-only differences.
+    - If a file with the exact target name already exists, the underlying
+      os.rename behavior may overwrite or fail depending on the OS/FS.
+    - The "ignored directories" filter compares absolute paths; provide full,
+      absolute paths for reliability (e.g., "/Volumes/T7 Touch/Photos/Gallery").
+"""
+
+
 import os
 import re
 import time
