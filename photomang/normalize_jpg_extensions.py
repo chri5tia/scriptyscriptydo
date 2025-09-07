@@ -1,7 +1,13 @@
 """
+This script recursively normalizes image file extensions in the current
+working directory: it renames .jpg/.jpeg (any case) to .JPG, skipping
+hidden files and avoiding collisions. Every run appends to a persistent
+'extension_normalization_report.txt' in the root directory, listing what
+was renamed and what was skipped (when the target filename already exists).
+
 Usage:
     # From the folder you want to process:
-    python3 script_name.py
+    python3 normalize_jpg_extensions.py
 
 Behavior:
     - Walks the current working directory and all subfolders.
