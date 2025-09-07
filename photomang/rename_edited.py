@@ -1,3 +1,23 @@
+"""
+Usage:
+    python3 script_name.py /path/to/compare_directory
+
+Example:
+    python3 script_name.py /Volumes/BackupDrive/Photos
+
+Behavior:
+    - Compares the current working directory against the given directory.
+    - Finds files that exist in the current directory but not in the compare directory
+      (matched by filename and file size).
+    - Renames those files with the format: <originalname>_XXXX-av<version>.<ext>
+    - Generates a report file (RenamedFilesReport_YYYYMMDD_HHMMSS.txt) in the
+      current directory listing all renames.
+
+Notes:
+    - The current directory is always the "source" being checked.
+    - The compare directory is provided as the single argument.
+"""
+
 import os
 import sys
 import re
@@ -30,7 +50,7 @@ def generate_new_name(file_name, version=1):
     """Generate a new name in the format *_xxxx-av"""
     # Try to find a 4-digit number in the original file name
     match = re.search(r'\d{4}', file_name)
-    
+
     if match:
         # If a 4-digit number is found, use it
         number = match.group(0)
@@ -83,4 +103,3 @@ if __name__ == "__main__":
         rename_and_generate_report(missing_files)
     else:
         print("All files match by name and size. No files to rename.")
-
