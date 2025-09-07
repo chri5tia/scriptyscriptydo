@@ -1,3 +1,34 @@
+"""
+This script scans a directory tree for files with redundant "_DUPLICATE"
+suffixes (e.g., "IMG_1234_DUPLICATE_DUPLICATE.JPG") and cleans them up by
+collapsing them into a single "_DUPLICATE". All changes are logged to a
+persistent report file.
+
+Usage:
+    python3 cleanup.py
+
+Behavior:
+    - Starts at the current working directory (recursively scans subfolders).
+    - Ignores hidden AppleDouble files (names beginning with "._").
+    - Detects filenames containing repeated "_DUPLICATE" sequences.
+    - Renames them by collapsing multiple "_DUPLICATE" suffixes into one.
+      Example:
+        "IMG_1234_DUPLICATE_DUPLICATE_DUPLICATE.JPG"
+        → "IMG_1234_DUPLICATE.JPG"
+    - Appends a timestamped log of each rename to
+      "duplicate_cleanup_report.txt" in the working directory.
+    - Prints each rename action to the console as well.
+
+Notes:
+    - Runs destructively (renames in place). There is no undo.
+    - Existing files with the intended cleaned-up name may cause collisions;
+      in that case, only a FileNotFoundError is caught.
+    - The report file is cumulative — it appends new entries on each run.
+    - Adjust `base_directory` and `report_file` in the code if you want to
+      scan a different folder or store the report elsewhere.
+"""
+
+
 import os
 import re
 from datetime import datetime
