@@ -1,3 +1,5 @@
+# Call this from the directory you want duplicates marked in
+
 import os
 import re
 import time
