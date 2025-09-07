@@ -1,3 +1,43 @@
+"""
+Renames every file whose name STARTS with 'IMG_####' in a target directory
+(recursively) to add an asset-version suffix, producing names like:
+    IMG_0123-av1.JPG
+The version number increments per file processed during the run (1, 2, 3, …),
+and a timestamped report of all renames is written in the CURRENT working
+directory.
+
+Usage:
+    python3 rescue.py /path/to/directory
+
+Behavior:
+    - Recursively walks the provided directory.
+    - Selects files whose basename matches ^IMG_\\d{4} (e.g., IMG_0001.jpg,
+      IMG_0001 copy.PNG, IMG_0001.CR2).
+    - Computes new name as: "<IMG_####>-av<N><original extension>"
+      (preserves original extension and its casing).
+    - Renames each matched file and appends the action to a run-scoped report:
+      RenamedFilesReport_YYYYMMDD_HHMMSS.txt, saved in the CURRENT working dir
+      (not necessarily the target directory).
+
+Matching rule:
+    - Uses prefix match: filenames must begin with 'IMG_' followed by 4 digits.
+    - Any trailing text before the extension is ignored for matching.
+    - Files that do NOT start with IMG_#### are left unchanged.
+
+Outputs:
+    - A report file named RenamedFilesReport_YYYYMMDD_HHMMSS.txt in the CWD,
+      with lines of the form: "Renamed: <old_path> -> <new_path>".
+
+Notes:
+    - Destructive rename (no undo).
+    - No collision check: if a target name already exists, os.rename may
+      overwrite on some systems (Unix) or fail on others (Windows).
+    - The version counter is global for the run (not per IMG_#### group).
+    - If you prefer the report to live in the target directory, run the script
+      from that directory or modify the report path in the code.
+"""
+
+
 import os
 import re
 import sys
