@@ -1,3 +1,52 @@
+"""
+This script interactively finds and tags duplicate image files in the CURRENT
+working directory (and all subfolders). It looks for files sharing the same
+camera-style base name (IMG_#### plus extension), lets you choose which one to
+keep, and renames the others by appending "_DUPLICATE" before the extension.
+It also supports an "auto folder" rule that automatically tags duplicates
+found under a specified path segment. A human-readable, append-only report of
+changes is written to 'duplicates_report.txt', and a simple execution log entry
+is appended to 'execution_report.txt' beside the script.
+
+Usage:
+    # cd into the folder you want to process (it scans CWD recursively)
+    python3 duplicates.py
+
+Interactive flow:
+    1) Confirms the starting directory (CWD).
+    2) Prompts for an "auto folder" path segment: any matching file path in that
+       subtree is auto-tagged as a duplicate (no prompt for that one).
+    3) For each group of potential duplicates:
+       - Shows full path, size (bytes + human-readable), ctime/mtime.
+       - If all sizes match exactly (byte-for-byte), it tells you; otherwise you
+         can skip this group or "skip all" future size mismatches.
+       - Choose:
+         * 'a' to keep ALL (no tags), or
+         * a file number (1, 2, ...) to keep that ONE and tag the rest.
+
+Matching rule:
+    - Files must match the pattern: IMG_####<anything><same extension>
+      (e.g., IMG_0123.jpg, IMG_0123-final.JPG → both map to IMG_0123 + .JPG).
+    - Hidden files are ignored; files already containing "_DUPLICATE" are ignored.
+    - Any directory path containing "Gallery" is skipped.
+
+Outputs:
+    - Renames tagged files by inserting "_DUPLICATE" before the extension.
+    - Appends a list of all renamed files to 'duplicates_report.txt' in CWD.
+    - Appends a timestamped execution line to 'execution_report.txt' (next to script).
+
+Notes:
+    - Destructive renames (no auto-undo). Test on a copy if unsure.
+    - Only filename pattern + extension are used to group; file content is NOT compared.
+    - Size checks are informational; you decide whether to proceed on mismatches.
+    - The "auto folder" match is substring-based; to reduce false positives,
+      enter a distinctive path segment (e.g., "/Volumes/T7 Touch/AutoBin").
+    - Skips any folder whose path contains "Gallery" (case-sensitive).
+    - macOS case-insensitive filesystems may allow case-only duplicates; the script
+      still relies on the explicit "_DUPLICATE" suffix to mark copies.
+"""
+
+
 # Call this from the directory you want duplicates marked in
 
 import os
