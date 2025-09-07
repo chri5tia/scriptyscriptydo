@@ -1,3 +1,27 @@
+"""
+This script compares two directories (including all subdirectories) and
+generates a report of files with the same name and size that appear in
+different locations, as well as files that exist in only one directory.
+The report is saved to your Desktop as 'report.txt'.
+
+Usage:
+    python3 compare.py /path/to/first/directory /path/to/second/directory
+
+Behavior:
+    - Recursively scans both directories and collects all files with sizes.
+    - Identifies:
+        * Files with the same name and size but located in different paths.
+        * Files that exist in only one directory (by name/size).
+    - Creates a plain text report (`report.txt`) on your Desktop, grouped
+      into these categories, with paths and sizes listed.
+
+Notes:
+    - Both arguments must be valid directory paths.
+    - Only filename and size are compared (not file contents).
+    - Existing report.txt on the Desktop will be overwritten each run.
+"""
+
+
 import os
 import sys
 
