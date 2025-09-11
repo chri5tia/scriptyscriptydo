@@ -21,6 +21,10 @@ Usage:
 #
 # Run script:
 #   ./dx3700_renamer.py "/path/to/folder" -y
+#
+# Notes:
+# May have to also run this if you have restarted your computer:
+# python3 -m venv .venv
 # ------------------------------------------------------------
 
 """
