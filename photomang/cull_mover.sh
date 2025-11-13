@@ -72,10 +72,9 @@ log() {
 
 has_cull_tag() {
   local file="$1"
-  # Read xattr -> plutil -> grep for "cull (case-insensitive)
-  if "$XATTR" -p 'com.apple.metadata:_kMDItemUserTags' "$file" 2>/dev/null \
-      | "$PLUTIL" -p - 2>/dev/null \
-      | "$GREP" -qi '"cull'; then
+  # Use mdls directly (case-insensitive match for the word "cull")
+  if /usr/bin/mdls -name kMDItemUserTags "$file" 2>/dev/null \
+      | /usr/bin/grep -qi '\<cull\>'; then
     return 0
   fi
   return 1
@@ -88,28 +87,24 @@ has_cull_tag() {
 # - If base is NAME (no -v), include NAME.* and NAME-v.*
 collect_variants() {
   local file="$1"
-  local parent base name ext stem stem_plain
+  local parent base name ext stem_plain
   parent="$("$DIRNAME" -- "$file")"
   base="$("$BASENAME" -- "$file")"
   name="${base%.*}"
   ext="${base##*.}"
-  if [[ "$name" == "$ext" ]]; then ext=""; else ext=".$ext"; fi
+  [[ "$name" == "$ext" ]] && ext="" || ext=".$ext"
 
-  # Determine canonical stem (strip trailing -v if present)
   if [[ "$name" == *"-v" ]]; then
     stem_plain="${name%-v}"
   else
     stem_plain="$name"
   fi
 
-  # Candidate patterns (quoted/glob-safe via printf + nulls later)
-  #  - stem_plain.*  and  stem_plain-v.*
-  # Use find to list regular files in parent matching either, excluding existing cull dir.
-  # We also ensure we stay at depth 1 within parent (no recursion here).
-  # Note: we allow any extension; you asked for "keep it simple."
+  # Match: stem_plain.*  and  stem_plain-v.*
   "$FIND" "$parent" -maxdepth 1 -type f ! -path "*/cull/*" \
-    \( -name "$(printf '%q' "$stem_plain").*" -o -name "$(printf '%q' "$stem_plain")-v.*" \) -print0
+    \( -name "$stem_plain.*" -o -name "$stem_plain-v.*" \) -print0
 }
+
 
 safe_move() {
   local src="$1"
@@ -167,26 +162,38 @@ process_tagged_file() {
     return 0
   fi
 
-  # Build the variant list (includes the file itself)
-  # Use an assoc set to dedupe.
-  declare -A seen=()
-  # Add variants from collector
+  # Build the variant list (includes the file itself) without assoc arrays
+  local candidates=()
+  # Collect variants: stem.* and stem-v.* in same dir
   while IFS= read -r -d '' v; do
     [[ -f "$v" ]] || continue
-    # avoid anything already inside a cull folder
-    if [[ "$v" == */cull/* ]]; then continue; fi
-    seen["$v"]=1
+    [[ "$v" == */cull/* ]] && continue
+    candidates+=("$v")
   done < <(collect_variants "$file")
 
-  # If nothing matched (unlikely), at least move the file itself
-  if (( ${#seen[@]} == 0 )); then
-    seen["$file"]=1
+  # If none found (unlikely), at least move the file itself
+  if ((${#candidates[@]}==0)); then
+    candidates+=("$file")
   fi
 
-  for v in "${!seen[@]}"; do
-    safe_move "$v" "$target"
+  # Deduplicate with a simple O(n^2) check (small lists; fine here)
+  local move_list=()
+  local c
+  for c in "${candidates[@]}"; do
+    local already=0
+    local m
+    for m in "${move_list[@]}"; do
+      if [[ "$m" == "$c" ]]; then already=1; break; fi
+    done
+    (( already )) || move_list+=("$c")
+  done
+
+  # Ensure target exists and move each
+  for c in "${move_list[@]}"; do
+    safe_move "$c" "$target"
   done
 }
+
 
 process_file_list() {
   while IFS= read -r -d '' f; do
