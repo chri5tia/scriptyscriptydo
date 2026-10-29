@@ -26,8 +26,8 @@ cutoff = datetime.now(timezone.utc) - timedelta(days=7)
 
 # Loop through the feeds, this is where you add more.
 FEEDS = {
-    "core": "https://www.drupal.org/security/contrib/rss.xml",
-    "contrib": "https://www.drupal.org/security/rss.xml",
+    "core": "https://www.drupal.org/security/rss.xml",
+    "contrib": "https://www.drupal.org/security/contrib/rss.xml",
 }
 
 for name, rss_url in FEEDS.items():
@@ -39,11 +39,11 @@ for name, rss_url in FEEDS.items():
     for entry in feed.entries:
 
         # Skip entries without publication dates.
-         if not hasattr(entry, "published_parsed"):
+        if not hasattr(entry, "published_parsed"):
             continue
 
          # Convert publication date into a datetime object.
-         published = datetime(
+        published = datetime(
              *entry.published_parsed[:6],
              tzinfo=timezone.utc
          )
