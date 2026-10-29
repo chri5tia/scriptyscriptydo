@@ -103,9 +103,10 @@ for name, rss_url in FEEDS.items():
         # Display advisories published in the last 7 days
         if published >= cutoff:
             project, separator, details = entry.title.partition(" - ")
+            severity = details.split (" - ") [0]
             if separator:
                 feed_messages.append(
-                    f":small_blue_diamond: *{project}* - <{entry.link}|{details}>"
+                    f":small_blue_diamond: *{project}* - <{entry.link}|{severity}>"
                 )
             else:
                 feed_messages.append(
