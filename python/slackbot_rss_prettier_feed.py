@@ -21,7 +21,10 @@ Requires Python 3 and feedparser (pip install feedparser).
 
 # Grab some modules
 import feedparser
+import json
+import os
 from datetime import datetime, timedelta, timezone
+from urllib.request import Request, urlopen
 
 # Calculate cut off, 7 days ago.
 # We can change days=7 to hours=24.
@@ -33,6 +36,23 @@ FEEDS = {
     "core": "https://www.drupal.org/security/rss.xml",
     "contrib": "https://www.drupal.org/security/contrib/rss.xml",
 }
+
+def post_to_slack(message):
+    """Send a message to Slack using an incoming webhook."""
+    webhook_url = os.environ["SLACK_WEBHOOK_URL"]
+
+    payload = json.dumps({"text": message}).encode("utf-8")
+
+    request = Request(
+        webhook_url,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+    with urlopen(request, timeout=15) as response:
+        if response.status !=200:
+            raise RuntimeError(f"Slack Returned HTTP {response.status}")
 
 for name, rss_url in FEEDS.items():
     print(f"\n{name.upper()} SECURITY ADVISORIES")
@@ -54,4 +74,8 @@ for name, rss_url in FEEDS.items():
 
         # Display advisories published in the last 7 days
         if published >= cutoff:
-            print(f"{entry.link}|{entry.title}")
+            message = (f"<{entry.link}|{entry.title}>")
+            print(message)
+            post_to_slack(message)
+            # Uncomment the below during integration testing to avoid flooding the channel
+            # break
