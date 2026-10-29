@@ -54,10 +54,24 @@ def post_to_slack(message):
         if response.status !=200:
             raise RuntimeError(f"Slack Returned HTTP {response.status}")
 
+messages = []
 for name, rss_url in FEEDS.items():
     print(f"\n{name.upper()} SECURITY ADVISORIES")
 
     feed = feedparser.parse(rss_url)
+    feed_messages = []
+
+    # Log an error if the feed isn't landing, Drupal.org is down, etc.
+    status = feed.get("status")
+
+    if status is None or status >= 400:
+        raise RuntimeError(
+            f"Failed to fetch Drupal {name} RSS feed: HTTP {status}"
+        )
+
+    # Trip a runtime error if the feed is malformed.
+    if feed.get("bozo"):
+        raise RuntimeError(f"Invalid RSS feed: {feed.bozo_exception}")
 
     # Loop through each advisory.
     for entry in feed.entries:
@@ -66,16 +80,22 @@ for name, rss_url in FEEDS.items():
         if not hasattr(entry, "published_parsed"):
             continue
 
-         # Convert publication date into a datetime object.
+        # Convert publication date into a datetime object.
         published = datetime(
-             *entry.published_parsed[:6],
-             tzinfo=timezone.utc
-         )
+            *entry.published_parsed[:6],
+            tzinfo=timezone.utc
+        )
 
         # Display advisories published in the last 7 days
         if published >= cutoff:
             message = (f"<{entry.link}|{entry.title}>")
-            print(message)
-            post_to_slack(message)
-            # Uncomment the below during integration testing to avoid flooding the channel
-            # break
+            feed_messages.append(message)
+
+    if feed_messages:
+        messages.append(f"*{name.upper()} SECURITY ADVISORIES*")
+        messages.extend(feed_messages)
+        messages.append("")
+
+# Ship the advisory message to slack
+if messages:
+    post_to_slack("\n".join(messages))
