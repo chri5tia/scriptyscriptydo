@@ -58,7 +58,7 @@ report_date = datetime.now().strftime("%m/%d/%y %H:%M")
 
 messages = [
     ":mega::drupal-2: -*DRUPAL SECURITY ADVISORIES*- :closed_lock_with_key::drupalbot:",
-    f"_Report generated: {report_date}_",
+    f"From the last 7 days. _Report generated: {report_date}_",
     ""
 ]
 
@@ -112,15 +112,16 @@ for name, rss_url in FEEDS.items():
                 feed_messages.append(
                     f":small_blue_diamond: <{entry.link}|{entry.title}>"
                 )
+    count = len(feed_messages)
 
-count = len(feed_messages)
+    messages.append(f"*{count} {name.upper()} Updates*")
 
-messages.append(f"*{count} {name.upper()} Updates*")
+    if feed_messages:
+        messages.extend(feed_messages)
+    else:
+        messages.append("_No new advisories._")
 
-if feed_messages:
-    messages.extend(feed_messages)
-else:
-    messages.append("_No new advisories._")
+    messages.append("")
 
 # Ship the advisory message to slack
 if messages:
