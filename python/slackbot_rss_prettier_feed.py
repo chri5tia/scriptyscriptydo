@@ -13,6 +13,8 @@
 Uses python's feedparser module to parse given RSS feed URLS each day.
 Grabs the <pubdate> and <link> items from the RSS feed content.
 Uses the datetime module to strip out older advisories.
+Requires Python 3 and feedparser (pip install feedparser).
+
 .·:* We want the Drupal advisories in slack to be pretty and simple. *:·.
 
 """
