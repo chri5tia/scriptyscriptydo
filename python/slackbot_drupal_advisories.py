@@ -57,7 +57,7 @@ def post_to_slack(message):
 report_date = datetime.now().strftime("%m/%d/%y %H:%M")
 
 messages = [
-    ":mega::drupal-2: -*DRUPAL SECURITY ADVISORIES*- :closed_lock_with_key::drupalbot-seasonal:",
+    ":mega::drupal-2: -*DRUPAL SECURITY ADVISORIES*- :closed_lock_with_key::drupalbot:",
     f"_Report generated: {report_date}_",
     ""
 ]
@@ -85,7 +85,7 @@ for name, rss_url in FEEDS.items():
 
     # Trip a runtime error if the feed is malformed.
     if feed.get("bozo"):
-        raise RuntimeError(f"Invalid RSS feed: {feed.bozo_exception}"")
+        raise RuntimeError(f"Invalid RSS feed: {feed.bozo_exception}")
 
     # Loop through each advisory.
     for entry in feed.entries:
