@@ -54,9 +54,15 @@ def post_to_slack(message):
         if response.status !=200:
             raise RuntimeError(f"Slack Returned HTTP {response.status}")
 
-messages = []
+report_date = datetime.now().strftime("%m/%d/%y %H:%M")
+
+messages = [
+    ":mega::drupal-2: -*DRUPAL SECURITY ADVISORIES*- :closed_lock_with_key::scream:   :slack-bot:",
+    f"_Report generated: {report_date}_",
+    ""
+]
+
 for name, rss_url in FEEDS.items():
-    print(f"\n{name.upper()} SECURITY ADVISORIES")
 
     feed = feedparser.parse(rss_url)
     feed_messages = []
@@ -88,13 +94,24 @@ for name, rss_url in FEEDS.items():
 
         # Display advisories published in the last 7 days
         if published >= cutoff:
-            message = (f"<{entry.link}|{entry.title}>")
-            feed_messages.append(message)
+            project, separator, details = entry.title.partition(" - ")
+            if separator:
+                feed_messages.append(
+                    f":small_blue_diamond: *{project}* - <{entry.link}|{details}>"
+                )
+            else:
+                feed_messages.append(
+                    f":small_blue_diamond: <{entry.link}|{entry.title}>"
+                )
 
-    if feed_messages:
-        messages.append(f"*{name.upper()} SECURITY ADVISORIES*")
-        messages.extend(feed_messages)
-        messages.append("")
+count = len(feed_messages)
+
+messages.append(f"*{count} {name.upper()} Updates*")
+
+if feed_messages:
+    messages.extend(feed_messages)
+else:
+    messages.append("_No new advisories._")
 
 # Ship the advisory message to slack
 if messages:
