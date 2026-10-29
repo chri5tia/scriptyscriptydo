@@ -79,6 +79,14 @@ for name, rss_url in FEEDS.items():
     if feed.get("bozo"):
         raise RuntimeError(f"Invalid RSS feed: {feed.bozo_exception}")
 
+    # Log an error if the feed isn't loading, Drupal.org is down, etc.
+    if feed.get("status", 200) >= 400:
+        raise RuntimeError(f"Failed to fetch Drupal {name} RSS feed")
+
+    # Trip a runtime error if the feed is malformed.
+    if feed.get("bozo"):
+        raise RuntimeError(f"Invalid RSS feed: {feed.bozo_exception}"")
+
     # Loop through each advisory.
     for entry in feed.entries:
 
