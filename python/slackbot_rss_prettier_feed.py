@@ -22,9 +22,11 @@ import feedparser
 from datetime import datetime, timedelta, timezone
 
 # Calculate cut off, 7 days ago.
+# We can change days=7 to hours=24.
 cutoff = datetime.now(timezone.utc) - timedelta(days=7)
 
-# Loop through the feeds, this is where you add more.
+# Loop through the feeds.
+# This is where we could add more if ever needed.
 FEEDS = {
     "core": "https://www.drupal.org/security/rss.xml",
     "contrib": "https://www.drupal.org/security/contrib/rss.xml",
@@ -50,4 +52,4 @@ for name, rss_url in FEEDS.items():
 
         # Display advisories published in the last 7 days
         if published >= cutoff:
-            print(entry.link, entry.published)
+            print(f"{entry.link}|{entry.title}")
