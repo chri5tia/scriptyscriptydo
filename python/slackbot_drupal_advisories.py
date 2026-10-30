@@ -57,7 +57,7 @@ def post_to_slack(message):
 report_date = datetime.now().strftime("%m/%d/%y %H:%M")
 
 messages = [
-    ":mega::drupal-2: -*DRUPAL SECURITY ADVISORIES*- :closed_lock_with_key::drupalbot:",
+    ":mega::drupal-2: *DRUPAL SECURITY ADVISORIES- :closed_lock_with_key::drupalbot:",
     f"From the last 7 days. _Report generated: {report_date}_",
     ""
 ]
